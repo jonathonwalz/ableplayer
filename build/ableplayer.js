@@ -159,7 +159,7 @@ var AblePlayer;
 			this.rootPath = $(media).data('root-path').replace(/\/?$/, '/');
 		}
 
-		if (!options.buttonIcons) {
+		if (!this.options.buttonIcons) {
 			this.options.buttonIcons = {
 				white: {},
 				black: {}
