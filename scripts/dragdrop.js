@@ -139,7 +139,7 @@
 		}
 		else {
 			// use image
-			buttonImgSrc = this.rootPath + 'button-icons/' + this.toolbarIconColor + '/preferences.png';
+			buttonImgSrc = this.options.buttonIcons[this.toolbarIconColor].preferences;
 			$buttonImg = $('<img>',{
 				'src': buttonImgSrc,
 				'alt': '',

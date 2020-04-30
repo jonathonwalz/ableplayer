@@ -19,9 +19,13 @@
 	};
 
 	AblePlayer.prototype.getRootPath = function() {
-
 		// returns Able Player root path (assumes ableplayer.js is in /build, one directory removed from root)
 		var scripts, i, scriptSrc, scriptFile, fullPath, ablePath, parentFolderIndex, rootPath;
+
+		if (this.rootPath) {
+			return this.rootPath;
+		}
+
 		scripts= document.getElementsByTagName('script');
 		for (i=0; i < scripts.length; i++) {
 			scriptSrc = scripts[i].src;
@@ -35,7 +39,7 @@
 		ablePath= fullPath.split('/').slice(0, -1).join('/'); // remove last filename part of path
 		parentFolderIndex = ablePath.lastIndexOf('/');
 		rootPath = ablePath.substring(0, parentFolderIndex) + '/';
-		return rootPath;
+		return (this.rootPath = rootPath);
 	}
 
 	AblePlayer.prototype.setIconColor = function() {
@@ -93,38 +97,37 @@
 	AblePlayer.prototype.setButtonImages = function() {
 
 		// NOTE: volume button images are now set dynamically within volume.js
-		this.imgPath = this.rootPath + 'button-icons/' + this.iconColor + '/';
-		this.playButtonImg = this.imgPath + 'play.png';
-		this.pauseButtonImg = this.imgPath + 'pause.png';
+		this.playButtonImg = this.options.buttonIcons[this.iconColor].play;
+		this.pauseButtonImg = this.options.buttonIcons[this.iconColor].pause;
 
-		this.restartButtonImg = this.imgPath + 'restart.png';
+		this.restartButtonImg = this.options.buttonIcons[this.iconColor].restart;
 
-		this.rewindButtonImg = this.imgPath + 'rewind.png';
-		this.forwardButtonImg = this.imgPath + 'forward.png';
+		this.rewindButtonImg = this.options.buttonIcons[this.iconColor].rewind;
+		this.forwardButtonImg = this.options.buttonIcons[this.iconColor].forward;
 
-		this.previousButtonImg = this.imgPath + 'previous.png';
-		this.nextButtonImg = this.imgPath + 'next.png';
+		this.previousButtonImg = this.options.buttonIcons[this.iconColor].previous;
+		this.nextButtonImg = this.options.buttonIcons[this.iconColor].next;
 
 		if (this.speedIcons === 'arrows') {
-			this.fasterButtonImg = this.imgPath + 'slower.png';
-			this.slowerButtonImg = this.imgPath + 'faster.png';
+			this.fasterButtonImg = this.options.buttonIcons[this.iconColor].slower;
+			this.slowerButtonImg = this.options.buttonIcons[this.iconColor].faster;
 		}
 		else if (this.speedIcons === 'animals') {
-			this.fasterButtonImg = this.imgPath + 'rabbit.png';
-			this.slowerButtonImg = this.imgPath + 'turtle.png';
+			this.fasterButtonImg = this.options.buttonIcons[this.iconColor].rabbit;
+			this.slowerButtonImg = this.options.buttonIcons[this.iconColor].turtle;
 		}
 
-		this.captionsButtonImg = this.imgPath + 'captions.png';
-		this.chaptersButtonImg = this.imgPath + 'chapters.png';
-		this.signButtonImg = this.imgPath + 'sign.png';
-		this.transcriptButtonImg = this.imgPath + 'transcript.png';
-		this.descriptionsButtonImg = this.imgPath + 'descriptions.png';
+		this.captionsButtonImg = this.options.buttonIcons[this.iconColor].captions;
+		this.chaptersButtonImg = this.options.buttonIcons[this.iconColor].chapters;
+		this.signButtonImg = this.options.buttonIcons[this.iconColor].sign;
+		this.transcriptButtonImg = this.options.buttonIcons[this.iconColor].transcript;
+		this.descriptionsButtonImg = this.options.buttonIcons[this.iconColor].descriptions;
 
-		this.fullscreenExpandButtonImg = this.imgPath + 'fullscreen-expand.png';
-		this.fullscreenCollapseButtonImg = this.imgPath + 'fullscreen-collapse.png';
+		this.fullscreenExpandButtonImg = this.options.buttonIcons[this.iconColor]['fullscreen-expand'];
+		this.fullscreenCollapseButtonImg = this.options.buttonIcons[this.iconColor]['fullscreen-collapse'];
 
-		this.prefsButtonImg = this.imgPath + 'preferences.png';
-		this.helpButtonImg = this.imgPath + 'help.png';
+		this.prefsButtonImg = this.options.buttonIcons[this.iconColor].preferences;
+		this.helpButtonImg = this.options.buttonIcons[this.iconColor].help;
 	};
 
 	AblePlayer.prototype.getSvgData = function(button) {

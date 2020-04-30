@@ -163,7 +163,7 @@
 			this.$volumeButton.find('span.able-clipped').text(volumeLabel);
 		}
 		else if (this.iconType === 'image') {
-			volumeImg = this.imgPath + 'volume-' + volumeName + '.png';
+			volumeImg = this.options.buttonIcons[this.iconColor]['volume-' + volumeName];
 			this.$volumeButton.find('img').attr('src',volumeImg);
 		}
 		else if (this.iconType === 'svg') {

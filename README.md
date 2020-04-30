@@ -148,6 +148,26 @@ to all use cases, both audio and video.
 <script src="build/ableplayer.min.js"></script>
 ```
 
+### Alternative setup with bundler
+
+Able Player can be installed via npm and configured to load resources via your
+bundlers configuration:
+
+```js
+const AblePlayer = require('ableplayer');
+AblePlayer.options = {
+  buttonIcons: {},
+  importTranslationFile: async lang => (await import(`ableplayer/build/translations/${lang}.js`)).default
+};
+
+for (const color of ['white', 'black']) {
+  options.buttonIcons[color] = {};
+  for (const icon of AblePlayer.buttonIcons) {
+    options.buttonIcons[color][icon] = require(`ableplayer/button-icons/${color}/${icon}.png`);
+  }
+}
+```
+
 Setup Step 3: Add HTML
 ----------------------
 

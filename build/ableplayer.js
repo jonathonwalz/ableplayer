@@ -1,3 +1,20 @@
+(function (root, factory) {
+  if (root === undefined && window !== undefined) root = window;
+  if (typeof define === 'function' && define.amd) {
+    // AMD. Register as an anonymous module unless amdModuleId is set
+    define(["jquery","js-cookie"], function (a0,b1) {
+      return (root['AblePlayer'] = factory(a0,b1));
+    });
+  } else if (typeof module === 'object' && module.exports) {
+    // Node. Does not work with strict CommonJS, but
+    // only CommonJS-like environments that support module.exports,
+    // like Node.
+    module.exports = factory(require("jquery"),require("js-cookie"));
+  } else {
+    root['AblePlayer'] = factory(root["jQuery"],root["Cookies"]);
+  }
+}(this, function (jQuery, Cookies) {
+
 /*
 	// JavaScript for Able Player
 
@@ -36,6 +53,7 @@
 
 // maintain an array of Able Player instances for use globally (e.g., for keeping prefs in sync)
 var AblePlayerInstances = [];
+var AblePlayer;
 
 (function ($) {
 	$(document).ready(function () {
@@ -63,10 +81,13 @@ var AblePlayerInstances = [];
 	// Construct an AblePlayer object
 	// Parameters are:
 	// media - jQuery selector or element identifying the media.
-	window.AblePlayer = function(media) {
+	AblePlayer = function(media) {
+		var i;
+
 		// Keep track of the last player created for use with global events.
 		AblePlayer.lastCreated = this;
 		this.media = media;
+		this.options = AblePlayer.options || {};
 		if ($(media).length === 0) {
 			this.provideFallback();
 			return;
@@ -135,8 +156,19 @@ var AblePlayerInstances = [];
 			// add a trailing slash if there is none
 			this.rootPath = $(media).data('root-path').replace(/\/?$/, '/');
 		}
-		else {
-			this.rootPath = this.getRootPath();
+
+		if (!options.buttonIcons) {
+			this.options.buttonIcons = {
+				white: {},
+				black: {}
+			};
+
+			for (i = 0; i < AblePlayer.buttonIcons.length; i++) {
+				this.options.buttonIcons.white[AblePlayer.buttonIcons[i]] = this.getRootPath() + 'button-icons/white/' + AblePlayer.buttonIcons[i] + '.png';
+			}
+			for (i = 0; i < AblePlayer.buttonIcons.length; i++) {
+				this.options.buttonIcons.black[AblePlayer.buttonIcons[i]] = this.getRootPath() + 'button-icons/black/' + AblePlayer.buttonIcons[i] + '.png';
+			}
 		}
 
 		// Volume
@@ -382,9 +414,16 @@ var AblePlayerInstances = [];
 
 		// TTML support (experimental); enabled for testing with data-use-ttml (Boolean)
 		if ($(media).data('use-ttml') !== undefined) {
-			this.useTtml = true;
 			// The following may result in a console error.
-			this.convert = require('xml-js');
+			try {
+				this.convert = require('xml-js');
+				this.useTtml = true;
+			} catch (e) {
+				if (typeof console !== 'undefined') {
+					console.error('Unable to load xml-js', e);
+				}
+				this.useTtml = false;
+			}
 		}
 		else {
 			this.useTtml = false;
@@ -558,7 +597,36 @@ var AblePlayerInstances = [];
 		}
 	};
 
-
+	AblePlayer.buttonIcons = [
+		'captions',
+		'chapters',
+		'close',
+		'descriptions',
+		'ellipsis',
+		'faster',
+		'forward',
+		'fullscreen-collapse',
+		'fullscreen-expand',
+		'help',
+		'next',
+		'pause',
+		'pipe',
+		'play',
+		'preferences',
+		'previous',
+		'rabbit',
+		'restart',
+		'rewind',
+		'sign',
+		'slower',
+		'stop',
+		'transcript',
+		'turtle',
+		'volume-loud',
+		'volume-medium',
+		'volume-mute',
+		'volume-soft'
+	];
 
 	AblePlayer.youtubeIframeAPIReady = false;
 	AblePlayer.loadingYoutubeIframeAPI = false;
@@ -585,9 +653,13 @@ var AblePlayerInstances = [];
 	};
 
 	AblePlayer.prototype.getRootPath = function() {
-
 		// returns Able Player root path (assumes ableplayer.js is in /build, one directory removed from root)
 		var scripts, i, scriptSrc, scriptFile, fullPath, ablePath, parentFolderIndex, rootPath;
+
+		if (this.rootPath) {
+			return this.rootPath;
+		}
+
 		scripts= document.getElementsByTagName('script');
 		for (i=0; i < scripts.length; i++) {
 			scriptSrc = scripts[i].src;
@@ -601,7 +673,7 @@ var AblePlayerInstances = [];
 		ablePath= fullPath.split('/').slice(0, -1).join('/'); // remove last filename part of path
 		parentFolderIndex = ablePath.lastIndexOf('/');
 		rootPath = ablePath.substring(0, parentFolderIndex) + '/';
-		return rootPath;
+		return (this.rootPath = rootPath);
 	}
 
 	AblePlayer.prototype.setIconColor = function() {
@@ -659,38 +731,37 @@ var AblePlayerInstances = [];
 	AblePlayer.prototype.setButtonImages = function() {
 
 		// NOTE: volume button images are now set dynamically within volume.js
-		this.imgPath = this.rootPath + 'button-icons/' + this.iconColor + '/';
-		this.playButtonImg = this.imgPath + 'play.png';
-		this.pauseButtonImg = this.imgPath + 'pause.png';
+		this.playButtonImg = this.options.buttonIcons[this.iconColor].play;
+		this.pauseButtonImg = this.options.buttonIcons[this.iconColor].pause;
 
-		this.restartButtonImg = this.imgPath + 'restart.png';
+		this.restartButtonImg = this.options.buttonIcons[this.iconColor].restart;
 
-		this.rewindButtonImg = this.imgPath + 'rewind.png';
-		this.forwardButtonImg = this.imgPath + 'forward.png';
+		this.rewindButtonImg = this.options.buttonIcons[this.iconColor].rewind;
+		this.forwardButtonImg = this.options.buttonIcons[this.iconColor].forward;
 
-		this.previousButtonImg = this.imgPath + 'previous.png';
-		this.nextButtonImg = this.imgPath + 'next.png';
+		this.previousButtonImg = this.options.buttonIcons[this.iconColor].previous;
+		this.nextButtonImg = this.options.buttonIcons[this.iconColor].next;
 
 		if (this.speedIcons === 'arrows') {
-			this.fasterButtonImg = this.imgPath + 'slower.png';
-			this.slowerButtonImg = this.imgPath + 'faster.png';
+			this.fasterButtonImg = this.options.buttonIcons[this.iconColor].slower;
+			this.slowerButtonImg = this.options.buttonIcons[this.iconColor].faster;
 		}
 		else if (this.speedIcons === 'animals') {
-			this.fasterButtonImg = this.imgPath + 'rabbit.png';
-			this.slowerButtonImg = this.imgPath + 'turtle.png';
+			this.fasterButtonImg = this.options.buttonIcons[this.iconColor].rabbit;
+			this.slowerButtonImg = this.options.buttonIcons[this.iconColor].turtle;
 		}
 
-		this.captionsButtonImg = this.imgPath + 'captions.png';
-		this.chaptersButtonImg = this.imgPath + 'chapters.png';
-		this.signButtonImg = this.imgPath + 'sign.png';
-		this.transcriptButtonImg = this.imgPath + 'transcript.png';
-		this.descriptionsButtonImg = this.imgPath + 'descriptions.png';
+		this.captionsButtonImg = this.options.buttonIcons[this.iconColor].captions;
+		this.chaptersButtonImg = this.options.buttonIcons[this.iconColor].chapters;
+		this.signButtonImg = this.options.buttonIcons[this.iconColor].sign;
+		this.transcriptButtonImg = this.options.buttonIcons[this.iconColor].transcript;
+		this.descriptionsButtonImg = this.options.buttonIcons[this.iconColor].descriptions;
 
-		this.fullscreenExpandButtonImg = this.imgPath + 'fullscreen-expand.png';
-		this.fullscreenCollapseButtonImg = this.imgPath + 'fullscreen-collapse.png';
+		this.fullscreenExpandButtonImg = this.options.buttonIcons[this.iconColor]['fullscreen-expand'];
+		this.fullscreenCollapseButtonImg = this.options.buttonIcons[this.iconColor]['fullscreen-collapse'];
 
-		this.prefsButtonImg = this.imgPath + 'preferences.png';
-		this.helpButtonImg = this.imgPath + 'help.png';
+		this.prefsButtonImg = this.options.buttonIcons[this.iconColor].preferences;
+		this.helpButtonImg = this.options.buttonIcons[this.iconColor].help;
 	};
 
 	AblePlayer.prototype.getSvgData = function(button) {
@@ -1432,7 +1503,7 @@ var AblePlayerInstances = [];
 
 })(jQuery);
 
-(function ($) {
+(function ($, Cookies) {
 	AblePlayer.prototype.setCookie = function(cookieValue) {
 		Cookies.set('Able-Player', cookieValue, { expires:90 });
 		// set the cookie lifetime for 90 days
@@ -2283,7 +2354,7 @@ var AblePlayerInstances = [];
 		return true;
 	};
 
-})(jQuery);
+})(jQuery, Cookies);
 
 (function ($) {
 	// See section 4.1 of dev.w3.org/html5/webvtt for format details.
@@ -4104,7 +4175,7 @@ var AblePlayerInstances = [];
 					}
 					else {
 						$pipeImg = $('<img>', {
-							src: this.rootPath + 'button-icons/' + this.iconColor + '/pipe.png',
+							src: this.options.buttonIcons[this.iconColor].pipe,
 							alt: '',
 							role: 'presentation'
 						});
@@ -4115,29 +4186,29 @@ var AblePlayerInstances = [];
 				else {
 					// this control is a button
 					if (control === 'volume') {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/' + this.volumeButton + '.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor][this.volumeButton];
 					}
 					else if (control === 'fullscreen') {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/fullscreen-expand.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor]['fullscreen-expand'];
 					}
 					else if (control === 'slower') {
 						if (this.speedIcons === 'animals') {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/turtle.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].turtle;
 						}
 						else {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/slower.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].slower;
 						}
 					}
 					else if (control === 'faster') {
 						if (this.speedIcons === 'animals') {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/rabbit.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].rabbit;
 						}
 						else {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/faster.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].faster;
 						}
 					}
 					else {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/' + control + '.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor][control];
 					}
 					buttonTitle = this.getButtonTitle(control);
 
@@ -6709,7 +6780,7 @@ if (thisObj.useTtml && (trackSrc.endsWith('.xml') || trackText.startsWith('<?xml
 			this.$volumeButton.find('span.able-clipped').text(volumeLabel);
 		}
 		else if (this.iconType === 'image') {
-			volumeImg = this.imgPath + 'volume-' + volumeName + '.png';
+			volumeImg = this.options.buttonIcons[this.iconColor]['volume-' + volumeName];
 			this.$volumeButton.find('img').attr('src',volumeImg);
 		}
 		else if (this.iconType === 'svg') {
@@ -12587,7 +12658,7 @@ if (thisObj.useTtml && (trackSrc.endsWith('.xml') || trackText.startsWith('<?xml
 		}
 		else {
 			// use image
-			buttonImgSrc = this.rootPath + 'button-icons/' + this.toolbarIconColor + '/preferences.png';
+			buttonImgSrc = this.options.buttonIcons[this.toolbarIconColor].preferences;
 			$buttonImg = $('<img>',{
 				'src': buttonImgSrc,
 				'alt': '',
@@ -14344,7 +14415,7 @@ if (thisObj.useTtml && (trackSrc.endsWith('.xml') || trackText.startsWith('<?xml
 
 	AblePlayer.prototype.getTranslationText = function() {
 		// determine language, then get labels and prompts from corresponding translation var
-		var deferred, thisObj, lang, thisObj, msg, translationFile, collapsedLang;
+		var deferred, thisObj, lang, thisObj, msg;
 		deferred = $.Deferred();
 
 		thisObj = this;
@@ -14380,22 +14451,26 @@ if (thisObj.useTtml && (trackSrc.endsWith('.xml') || trackText.startsWith('<?xml
 		if (!this.searchLang) {
 			this.searchLang = this.lang;
 		}
-		translationFile = this.rootPath + 'translations/' + this.lang + '.js';
-		this.importTranslationFile(translationFile).then(function(result) {
-			collapsedLang = thisObj.lang.replace('-','');
-			thisObj.tt = eval(collapsedLang);
+
+		this.importTranslationFile(lang).then(function(result) {
+			thisObj.tt = result;
 			deferred.resolve();
 		});
 		return deferred.promise();
 	};
 
-	AblePlayer.prototype.importTranslationFile = function(translationFile) {
+	AblePlayer.prototype.importTranslationFile = function(lang) {
+		if (this.options.importTranslationFile) {
+			return this.options.importTranslationFile(lang);
+		}
 
+		var translationFile = this.getRootPath() + 'build/translations/' + lang + '.js';
 		var deferred = $.Deferred();
 		$.getScript(translationFile)
-			.done(function(translationVar,textStatus) {
+			.done(function() {
 				// translation file successfully retrieved
-				deferred.resolve(translationVar);
+				var collapsedLang = lang.replace('-','');
+				deferred.resolve(window[collapsedLang]);
 			})
 			.fail(function(jqxhr, settings, exception) {
 				deferred.fail();
@@ -16156,3 +16231,8 @@ if (thisObj.useTtml && (trackSrc.endsWith('.xml') || trackText.startsWith('<?xml
 	};
 
 })(jQuery);
+
+return AblePlayer;
+return AblePlayer;
+
+}));

@@ -1048,7 +1048,7 @@
 					}
 					else {
 						$pipeImg = $('<img>', {
-							src: this.rootPath + 'button-icons/' + this.iconColor + '/pipe.png',
+							src: this.options.buttonIcons[this.iconColor].pipe,
 							alt: '',
 							role: 'presentation'
 						});
@@ -1059,29 +1059,29 @@
 				else {
 					// this control is a button
 					if (control === 'volume') {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/' + this.volumeButton + '.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor][this.volumeButton];
 					}
 					else if (control === 'fullscreen') {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/fullscreen-expand.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor]['fullscreen-expand'];
 					}
 					else if (control === 'slower') {
 						if (this.speedIcons === 'animals') {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/turtle.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].turtle;
 						}
 						else {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/slower.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].slower;
 						}
 					}
 					else if (control === 'faster') {
 						if (this.speedIcons === 'animals') {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/rabbit.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].rabbit;
 						}
 						else {
-							buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/faster.png';
+							buttonImgSrc = this.options.buttonIcons[this.iconColor].faster;
 						}
 					}
 					else {
-						buttonImgSrc = this.rootPath + 'button-icons/' + this.iconColor + '/' + control + '.png';
+						buttonImgSrc = this.options.buttonIcons[this.iconColor][control];
 					}
 					buttonTitle = this.getButtonTitle(control);
 

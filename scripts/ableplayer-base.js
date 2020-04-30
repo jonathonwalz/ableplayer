@@ -36,6 +36,7 @@
 
 // maintain an array of Able Player instances for use globally (e.g., for keeping prefs in sync)
 var AblePlayerInstances = [];
+var AblePlayer;
 
 (function ($) {
 	$(document).ready(function () {
@@ -63,10 +64,13 @@ var AblePlayerInstances = [];
 	// Construct an AblePlayer object
 	// Parameters are:
 	// media - jQuery selector or element identifying the media.
-	window.AblePlayer = function(media) {
+	AblePlayer = function(media) {
+		var i;
+
 		// Keep track of the last player created for use with global events.
 		AblePlayer.lastCreated = this;
 		this.media = media;
+		this.options = AblePlayer.options || {};
 		if ($(media).length === 0) {
 			this.provideFallback();
 			return;
@@ -135,8 +139,19 @@ var AblePlayerInstances = [];
 			// add a trailing slash if there is none
 			this.rootPath = $(media).data('root-path').replace(/\/?$/, '/');
 		}
-		else {
-			this.rootPath = this.getRootPath();
+
+		if (!options.buttonIcons) {
+			this.options.buttonIcons = {
+				white: {},
+				black: {}
+			};
+
+			for (i = 0; i < AblePlayer.buttonIcons.length; i++) {
+				this.options.buttonIcons.white[AblePlayer.buttonIcons[i]] = this.getRootPath() + 'button-icons/white/' + AblePlayer.buttonIcons[i] + '.png';
+			}
+			for (i = 0; i < AblePlayer.buttonIcons.length; i++) {
+				this.options.buttonIcons.black[AblePlayer.buttonIcons[i]] = this.getRootPath() + 'button-icons/black/' + AblePlayer.buttonIcons[i] + '.png';
+			}
 		}
 
 		// Volume
@@ -382,9 +397,16 @@ var AblePlayerInstances = [];
 
 		// TTML support (experimental); enabled for testing with data-use-ttml (Boolean)
 		if ($(media).data('use-ttml') !== undefined) {
-			this.useTtml = true;
 			// The following may result in a console error.
-			this.convert = require('xml-js');
+			try {
+				this.convert = require('xml-js');
+				this.useTtml = true;
+			} catch (e) {
+				if (typeof console !== 'undefined') {
+					console.error('Unable to load xml-js', e);
+				}
+				this.useTtml = false;
+			}
 		}
 		else {
 			this.useTtml = false;
@@ -558,7 +580,36 @@ var AblePlayerInstances = [];
 		}
 	};
 
-
+	AblePlayer.buttonIcons = [
+		'captions',
+		'chapters',
+		'close',
+		'descriptions',
+		'ellipsis',
+		'faster',
+		'forward',
+		'fullscreen-collapse',
+		'fullscreen-expand',
+		'help',
+		'next',
+		'pause',
+		'pipe',
+		'play',
+		'preferences',
+		'previous',
+		'rabbit',
+		'restart',
+		'rewind',
+		'sign',
+		'slower',
+		'stop',
+		'transcript',
+		'turtle',
+		'volume-loud',
+		'volume-medium',
+		'volume-mute',
+		'volume-soft'
+	];
 
 	AblePlayer.youtubeIframeAPIReady = false;
 	AblePlayer.loadingYoutubeIframeAPI = false;

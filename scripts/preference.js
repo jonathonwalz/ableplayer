@@ -1,4 +1,4 @@
-(function ($) {
+(function ($, Cookies) {
 	AblePlayer.prototype.setCookie = function(cookieValue) {
 		Cookies.set('Able-Player', cookieValue, { expires:90 });
 		// set the cookie lifetime for 90 days
@@ -849,4 +849,4 @@
 		return true;
 	};
 
-})(jQuery);
+})(jQuery, Cookies);

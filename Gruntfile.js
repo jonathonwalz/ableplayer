@@ -1,7 +1,9 @@
 module.exports = function(grunt) {
+    var translations = [];
 
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-umd');
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-contrib-clean');
@@ -12,6 +14,9 @@ module.exports = function(grunt) {
         pkg: grunt.file.readJSON('package.json'),
         concat: {
             build: {
+                options: {
+                    footer: '\nreturn AblePlayer;'
+                },
                 src: [
                     // Ultimately this should be just 'scripts/*.js',
                     //  but for now we're maintaining the order which was
@@ -48,6 +53,30 @@ module.exports = function(grunt) {
                 dest: 'build/<%= pkg.name %>.js'
             },
         },
+        copy: {
+            translations: {
+                files: [{
+                    expand: true,
+                    src: 'translations/*.js',
+                    rename: function(dest, src) {
+                        translations.push(src.substring('translations/'.length, src.length - 3));
+                        return 'build/' + src;
+                    }
+                }]
+            }
+        },
+        umd: {
+            build: {
+                options: {
+                    src: 'build/<%= pkg.name %>.js',
+                    objectToExport: 'AblePlayer',
+                    deps: {
+                        default: [{'jquery': 'jQuery'}, {'js-cookie': 'Cookies'}],
+                        global: ['jQuery', 'Cookies']
+                    }
+                }
+            }
+        },
         removelogging: {
             dist: {
                 src: [
@@ -63,6 +92,13 @@ module.exports = function(grunt) {
             min: {
                 src    : ['build/<%= pkg.name %>.dist.js'],
                 dest   : 'build/<%= pkg.name %>.min.js',
+            },
+            translations: {
+                files: [{
+                    expand: true,
+                    src: 'build/translations/*.js',
+                    ext: '.min.js'
+                }]
             },
             options: {
                 // Add a banner with the package name and version
@@ -103,6 +139,17 @@ module.exports = function(grunt) {
 
     });
 
-    grunt.registerTask('default', ['concat', 'removelogging', 'uglify', 'cssmin']);
+    grunt.registerTask('umdTranslations', function() {
+        var i;
+
+        for (i = 0; i < translations.length; i++) {
+            grunt.config('umd.translation-' + translations[i] + '', {
+                src: 'build/translations/' + translations[i] + '.js',
+                objectToExport: translations[i].replace('-', '')
+            });
+        }
+    })
+
+    grunt.registerTask('default', ['concat', 'copy', 'umdTranslations', 'umd', 'removelogging', 'uglify', 'cssmin']);
     grunt.registerTask('test', ['jshint']);
 };

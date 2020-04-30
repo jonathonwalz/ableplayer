@@ -7,7 +7,7 @@
 
 	AblePlayer.prototype.getTranslationText = function() {
 		// determine language, then get labels and prompts from corresponding translation var
-		var deferred, thisObj, lang, thisObj, msg, translationFile, collapsedLang;
+		var deferred, thisObj, lang, thisObj, msg;
 		deferred = $.Deferred();
 
 		thisObj = this;
@@ -43,22 +43,26 @@
 		if (!this.searchLang) {
 			this.searchLang = this.lang;
 		}
-		translationFile = this.rootPath + 'translations/' + this.lang + '.js';
-		this.importTranslationFile(translationFile).then(function(result) {
-			collapsedLang = thisObj.lang.replace('-','');
-			thisObj.tt = eval(collapsedLang);
+
+		this.importTranslationFile(lang).then(function(result) {
+			thisObj.tt = result;
 			deferred.resolve();
 		});
 		return deferred.promise();
 	};
 
-	AblePlayer.prototype.importTranslationFile = function(translationFile) {
+	AblePlayer.prototype.importTranslationFile = function(lang) {
+		if (this.options.importTranslationFile) {
+			return this.options.importTranslationFile(lang);
+		}
 
+		var translationFile = this.getRootPath() + 'build/translations/' + lang + '.js';
 		var deferred = $.Deferred();
 		$.getScript(translationFile)
-			.done(function(translationVar,textStatus) {
+			.done(function() {
 				// translation file successfully retrieved
-				deferred.resolve(translationVar);
+				var collapsedLang = lang.replace('-','');
+				deferred.resolve(window[collapsedLang]);
 			})
 			.fail(function(jqxhr, settings, exception) {
 				deferred.fail();
