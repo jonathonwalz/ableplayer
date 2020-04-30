@@ -43,7 +43,7 @@ var AblePlayer;
 
 		$('video, audio').each(function (index, element) {
 			if ($(element).data('able-player') !== undefined) {
-				AblePlayerInstances.push(new AblePlayer($(this),$(element)));
+				new AblePlayer($(this),$(element));
 			}
 		});
 	});
@@ -64,13 +64,15 @@ var AblePlayer;
 	// Construct an AblePlayer object
 	// Parameters are:
 	// media - jQuery selector or element identifying the media.
-	AblePlayer = function(media) {
+	AblePlayer = function(media, options) {
 		var i;
 
 		// Keep track of the last player created for use with global events.
 		AblePlayer.lastCreated = this;
+		// AblePlayerInstances.push(this);
+
 		this.media = media;
-		this.options = AblePlayer.options || {};
+		this.options = AblePlayer.options || options || {};
 		if ($(media).length === 0) {
 			this.provideFallback();
 			return;
